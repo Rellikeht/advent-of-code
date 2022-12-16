@@ -4,6 +4,28 @@ let cchar cell = match cell with | Empty -> '.' | Wall -> '#' | Sand -> 'o';;
 let get_at map x y w = map.(y*w+x);;
 let set_at map x y w c = map.(y*w+x) <- c;;
 
+(* PRINTING *)
+
+let print_pair (i1, i2) =
+    print_int i1;print_char ' ';print_int i2;print_char '\n'
+;;
+
+let print_llist lns = List.iter print_pair lns ;;
+let print_lines lines = 
+    List.iter (fun ln -> print_llist ln;print_char '\n') lines
+;;
+
+let rec print_map map w h x y =
+    if y == h then ()
+    else if x == w then begin
+        print_char '\n';
+        print_map map w h 0 (y+1)
+    end else begin
+        print_char (cchar map.(y*w+x));
+        print_map map w h (x+1) y
+    end
+;;
+
 (* GENERATING *)
 
 let get_num nspec = match String.split_on_char ',' nspec with
@@ -72,25 +94,3 @@ let stp = (500, 0) in
 let map = Array.make (width*height) Empty in
 let bot = gen_lines map width (get_lines []) 0 in
 print_int (drops map width bot stp 0);print_char '\n'
-
-(* PRINTING *)
-
-let print_pair (i1, i2) =
-    print_int i1;print_char ' ';print_int i2;print_char '\n'
-;;
-
-let print_llist lns = List.iter print_pair lns ;;
-let print_lines lines = 
-    List.iter (fun ln -> print_llist ln;print_char '\n') lines
-;;
-
-let rec print_map map w h x y =
-    if y == h then ()
-    else if x == w then begin
-        print_char '\n';
-        print_map map w h 0 (y+1)
-    end else begin
-        print_char (cchar map.(y*w+x));
-        print_map map w h (x+1) y
-    end
-;;
