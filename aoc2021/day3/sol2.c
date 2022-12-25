@@ -12,12 +12,14 @@ int main() {
 	char buf[sizeof(btype)*8] = {0};
 	int amounts[sizeof(btype)*8] = {0};
 	int i = 0, lines = 0, delem;
-	node *numlist = NULL, nlel;
+	node *numlist = NULL;
 
 	while (!feof(stdin)) {
-		scanf("%s", buf);
-		nlel = (node){.num=atoi(buf), .next=numlist};
-		numlist = &nlel;
+		scanf("%s\n", buf);
+		//node newel = (node){.num=atoll(buf), .next=numlist};
+		//numlist = &newel;
+		numlist = &(node){.num=atoll(buf), .next=numlist};
+		printf("%llu %p\n", numlist->num, numlist);
 
 		while (buf[i] != 0) {
 			amounts[i] += buf[i]-'0';
@@ -41,10 +43,15 @@ int main() {
 	//printf("%llu %llu %llu\n", endval, ev2, endval*ev2);
 
 	node *cnode = numlist;
+	printf("%i\n", cnode == cnode->next);
 	while (cnode->next != NULL) {
-		if ((cnode->num&byte) == (oxval&byte)) {
-		}
+		printf("%llu\n", cnode->num);
+		cnode = cnode->next;
+
+		//if ((cnode->num&byte) == (oxval&byte)) {
+		//}
 	}
+
 	byte >>= 1;
 
 	return 0;
