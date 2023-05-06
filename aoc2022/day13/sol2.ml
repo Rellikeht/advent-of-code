@@ -30,7 +30,7 @@ let rec tokenize ln i tks =
         tokenize ln j (I num::tks)
 ;;
 
-let get_tokens () = List.rev (tokenize (read_line ()) 0 []) ;;
+let get_tokens str = List.rev (tokenize (str) 0 []) ;;
 
 (* PARSER *)
 
@@ -48,11 +48,14 @@ let rec get_item parent tokens ch = match tokens with
     | _ -> (ch, [])
 ;;
 
+let read_item str =
+    get_tree (List.hd (fst (get_item empty (get_tokens str) [])))
+;;
+
 let rec get_items items =
-    let i1t, i2t = (get_tokens (), get_tokens ()) in
-    let i1 = get_tree (List.hd (fst (get_item empty i1t []))) in
-    let i2 = get_tree (List.hd (fst (get_item empty i2t []))) in
-    let endval = (i2, i1)::items in
+    let i1 = read_item (read_line ()) in
+    let i2 = read_item (read_line ()) in
+    let endval = i2::i1::items in
     try let _ = read_line () in get_items endval
     with End_of_file -> endval
 ;;
@@ -69,36 +72,52 @@ let rec compare t1 t2 =
             if v2 < v1 then rval No
             else if v1 < v2 then rval Yes
             else compare r1 r2
-    | (T t1)::r1, (T t2)::r2 -> begin
+    | (T t1)::r1, (T t2)::r2 ->
         let res, _, _ = compare (t1.children) (t2.children) in
         if res == Continue then compare r1 r2 else rval res
-    end
-    | (V v1)::r1, (T t2)::r2 -> begin
-        let res, r1, r2 = compare ((V v1)::[]) (t2.children) in
-        if res == Continue then compare r1 r2
+    | (V v1)::r1, (T t2)::r2 ->
+        let res, _, nr2 = compare ((V v1)::[]) (t2.children) in
+        if res == Continue then compare r1 (List.append nr2 r2)
         else rval res
-    end
-    | (T t1)::r1, (V v2)::r2 -> begin
-        let res, r1, r2 = compare (t1.children) ((V v2)::[]) in
-        if res == Continue then compare r1 r2
+    | (T t1)::r1, (V v2)::r2 ->
+        let res, nr1, _ = compare (t1.children) ((V v2)::[]) in
+        if res == Continue then compare (List.append nr1 r1) r2
         else rval res
-    end
 ;;
 
-let rec ctrees tlist index count =
-    match tlist with
-    | [] -> count
-    | (t1, t2)::rest -> begin
-        let res, _, _ = compare (t1.children) (t2.children) in
-        if res == Yes then ctrees rest (index+1) (count+index)
-        else ctrees rest (index+1) count
-    end
+let tcmp t1 t2 =
+    let res, _, _ = compare (t1.children) (t2.children) in
+    match res with
+    | Yes -> 0
+    | No | Continue -> 1
+;;
+
+let same t1 t2 =
+    let res, _, _ = compare (t1.children) (t2.children) in
+    match res with
+    | Continue -> true
+    | _ -> false
 ;;
 
 (* MAIN *)
 
+let pos tr ls =
+    let rec ps ls i = match ls with
+    | [] -> -1
+    | e::r -> if same e tr then i else ps r (i+1)
+    in ps ls 1
+;;
+
+let e1 = read_item "[[2]]" in
+let e2 = read_item "[[6]]" in
 let its = List.rev (get_items []) in
-print_int (ctrees its 1 0);print_char '\n'
+let sorted = List.stable_sort tcmp (List.append [e1;e2] its) in
+
+let e1p = pos e1 sorted in
+let e2p = pos e2 sorted in
+print_int (e1p*e2p);print_newline ()
+
+(* List.iter (fun x -> print_elems [T x];print_newline ()) sorted; *)
 
 (* PRINT *)
 

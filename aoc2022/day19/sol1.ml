@@ -125,21 +125,24 @@ let rec quality recipes robots res cnt rtable =
                 (add_res robots nres) (cnt-1) rtable
                 )
         in
-        if Hashtbl.mem rtable (res, robots) then
-            Hashtbl.find rtable (res, robots)
+        if Hashtbl.mem rtable (res, robots, cnt) then
+            Hashtbl.find rtable (res, robots, cnt)
         else begin
             let nrobots = creation res recipes [] in
             let nq = quality recipes robots (add_res robots res) (cnt-1) rtable
             in
             let mq = List.fold_left maxf nq nrobots in
-            Hashtbl.replace rtable (res, robots) mq; mq
+            Hashtbl.replace rtable (res, robots, cnt) mq; mq
         end
     end
 ;;
 
 (* MAIN *)
 
-let clen = 19 in
+let clen = 20 in
+let init_tlen =
+    (int_of_float (float_of_int 2 ** float_of_int (max (clen-1) 2)))
+in
 let srobots = (1, 0, 0, 0) in
 let sres = (0, 0, 0, 0) in
 let blueprints = get_blueprints [] in
@@ -148,7 +151,7 @@ let qfun (bn, bc) b =
     let nb = qual b srobots sres clen in
     *)
     let restable =
-        Hashtbl.create (int_of_float (float_of_int 2 ** float_of_int clen))
+        Hashtbl.create init_tlen
     in
     let nb = quality b srobots sres clen restable in
     print_rbs b;print_char ' ';
@@ -156,7 +159,8 @@ let qfun (bn, bc) b =
     (bn+1, bc+bn*nb)
 in
 let qc = List.fold_left qfun (1, 0) blueprints in
-()
+qc;
+
 (*
 print_int (snd qc);print_newline ()
 *)
