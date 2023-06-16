@@ -2,7 +2,6 @@
 
 type robot = Ore of int | Clay of int | Obs of int * int | Geo of int * int
 type rtype = ROre | RClay | RObs | RGeo
-type recipe = {ore: int; clay: int; obs: int * int; geo: int * int}
 
 (* PRINTING *)
 
@@ -13,23 +12,20 @@ let print_rob r = match r with
 | RGeo -> print_string "Geode Robot"
 ;;
 
-let print_robot r =
-    (match r with
-        | Ore o -> begin print_string "Ore ";print_int o end
-        | Clay c -> begin print_string "Clay ";print_int c end
-        | Obs (b1, b2) -> begin
-            print_string "Obsidian ("; print_int b1;
-        print_string ","; print_int b2; print_string ")"
-        end
-        | Geo (g1, g2) -> begin
-            print_string "Geode ("; print_int g1;
-        print_string ","; print_int g2; print_string ")"
-        end);
+let print_robot r = match r with
+| Ore o -> begin print_string "Ore ";print_int o end
+| Clay c -> begin print_string "Clay ";print_int c end
+| Obs (b1, b2) -> begin
+    print_string "Obsidian ("; print_int b1;
+    print_string ","; print_int b2; print_string ")"
+end
+| Geo (g1, g2) -> begin
+    print_string "Geode ("; print_int g1;
+    print_string ","; print_int g2; print_string ")"
+end
 ;;
 
-(*
-TODO repair printing
-let print_robots rbs =
+let print_rbs rbs =
     print_string "[ ";
     let rec rpr rbs = match rbs with
     | [] -> ()
@@ -38,7 +34,6 @@ let print_robots rbs =
     in rpr rbs;
     print_endline " ]"
 ;;
-*)
 
 let print_res (o, c, b, g) =
     print_string "(";
@@ -50,7 +45,6 @@ let print_res (o, c, b, g) =
 
 (* READING *)
 
-let zeros_blueprint = {ore=0;clay=0; obs=(0, 0); geo=(0, 0)};;
 let read_blueprint () =
     let recp = List.hd (List.tl (String.split_on_char ':' (read_line ()))) in
     let recs = String.split_on_char '.' recp in
@@ -63,59 +57,20 @@ let read_blueprint () =
     | []::rest -> getns rest ns
     | ls::rest -> getns rest (ls::ns)
     in match getns (List.map getn recs) [] with
-    | [g1;g2]::[b1;b2]::[c]::[o]::[] -> {geo=(g1, g2);obs=(b1, b2);clay=c;ore=o}
-    | _ -> zeros_blueprint
+    | [g1;g2]::[b1;b2]::[c]::[o]::[] -> [Geo (g1, g2);Obs (b1, b2);Clay c;Ore o]
+    | _ -> []
 ;;
 
 let rec get_blueprints bps =
     try match read_blueprint () with
-        | {ore=0;clay=0;obs=(0, 0);geo=(0, 0)} -> get_blueprints bps
+        | [] -> get_blueprints bps
         | bp -> get_blueprints (bp::bps)
     with End_of_file -> List.rev bps
 ;;
 
 (* SIMULATION *)
 
-let minutes = 20;;
-let start_robots = (1, 0, 0, 0);;
-let start_res = (0, 0, 0, 0);;
-
-let rec max_geo blueprint minute
-    (res_ore, res_clay, res_obs, res_geo)
-    (rob_ore, rob_clay, rob_obs, rob_geo) =
-
-    if minute >= minutes then res_geo
-    else begin
-        let newm = minute + 1 in
-        (* TODO here it ends *)
-        max_geo newm new_res blueprint
-    end
-;;
-
-let rec quality (cur_id, sum) blueprint =
-    match blueprint with
-    | [Geo (g1, g2);Obs (b1, b2);Clay c;Ore o] -> 
-        (cur_id+1, sum + max_geo 0 start_res (o, c, b1, b2, g1, g2))
-    | _ -> (cur_id+1, sum)
-;;
-
-let blueprints = get_blueprints [] in
-let quality_sum = snd (List.fold_left quality (1, 0) blueprints) in
-print_int quality_sum; print_newline ();;
-
-(*
-
 let add_res (o1,c1,b1,g1) (o2,c2,b2,g2) = (o1+o2,c1+c2,b1+b2,g1+g2);;
-
-List.iter print_robots blueprints
-
-let init_tlen =
-    (int_of_float (float_of_int 2 ** float_of_int (max (clen-1) 2)))
-in
-
-*)
-
-(*
 let getg (o, c, b, g) = g;;
 let upgr (ro, rc, rb, rg) rob = match rob with
 | ROre -> (ro+1, rc, rb, rg)
@@ -181,4 +136,46 @@ let rec quality recipes robots res cnt rtable =
         end
     end
 ;;
+
+(* MAIN *)
+
+let clen = 20 in
+let init_tlen =
+    (int_of_float (float_of_int 2 ** float_of_int (max (clen-1) 2)))
+in
+let srobots = (1, 0, 0, 0) in
+let sres = (0, 0, 0, 0) in
+let blueprints = get_blueprints [] in
+let qfun (bn, bc) b =
+    (*
+    let nb = qual b srobots sres clen in
+    *)
+    let restable =
+        Hashtbl.create init_tlen
+    in
+    let nb = quality b srobots sres clen restable in
+    print_rbs b;print_char ' ';
+    print_int bn;print_char ' ';print_int nb;print_newline ();
+    (bn+1, bc+bn*nb)
+in
+let qc = List.fold_left qfun (1, 0) blueprints in
+qc;
+
+print_int (snd qc);print_newline ()
+
+(*
+*)
+
+(*
+    if cnt <= 0 then
+        let cmax = getg res in
+        if Hashtbl.mem rtable (res, robots) then
+            max cmax (Hashtbl.find rtable (res, robots))
+        else cmax
+
+*)
+
+(*
+print_rbs (List.hd blueprints); print_newline ();
+
 *)
