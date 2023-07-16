@@ -108,46 +108,54 @@ let produce ((bot_o, bot_c, bot_b, bot_g), (res_o, res_c, res_b, res_g)) t =
 24 9 12 33
 *)
 
-let maximum_geodes cur_max blueprint robots resources =
+type t1 = resources * resources
+type t2 = int * int
+
+let maximum_geodes tab cur_max blueprint robots resources =
     let rec max_geo minute (robots, resources) =
         if minute >= minutes then
-            let geodes = get_geo resources in
-            if !cur_max < geodes then cur_max := geodes
-            else (); geodes
+            begin
+                let geodes = get_geo resources in
+                if !cur_max < geodes then cur_max := geodes
+                else (); geodes
+            end
 
         else
-            let time_left = (minutes - minute + 1) in
-            let upper =
-                time_left * (get_geo robots + 1) +
-                time_left * (time_left - 1)/2
-            in
-
-            if upper < !cur_max then 0
-            else
+            begin
                 let state = (robots, resources) in
-                let nmin = minute + 1 in
-                let update ((wo, wc, wb, wg), (ro, rc, rb, rg)) =
-                    (ro+wo, rc+wc, rb+wb, rg+wg)
-                in
-                let updated = update state in
+                let comp () =
+                    let nmin = minute + 1 in
+                    let update ((wo, wc, wb, wg), (ro, rc, rb, rg)) =
+                        (ro+wo, rc+wc, rb+wb, rg+wg)
+                    in
+                    let updated = update state in
 
-                let p1 =
-                    List.map (fun x -> produce state (Some x)) blueprint
-                in
-                let p2 = List.map Option.get (List.filter ((!=) None) p1) in
-                let p3 =
-                    List.map (fun (w, r) -> (w, update (robots, r))) p2
+                    let p1 = List.map (fun x -> produce state (Some x)) blueprint in
+                    let p2 = List.map Option.get (List.filter ((!=) None) p1) in
+                    let p3 = List.map (fun (w, r) -> (w, update (robots, r))) p2 in
+                    let p4 = List.map (max_geo nmin) p3 in
+                    let p5 = List.fold_left max 0 p4 in
+                    let total = max (max_geo (minute+1) (robots, updated)) p5 in
+                    Hashtbl.replace tab state (minute, total); total
                 in
 
-                let p4 = List.map (max_geo nmin) p3 in
-                let p5 = List.fold_left max 0 p4 in
-                let total = max (max_geo nmin (robots, updated)) p5 in
-                total
+                try
+                    let time_left = (minutes - minute + 1) in
+                    let upper =
+                        time_left * (get_geo robots + 1) +
+                        time_left * (time_left + 1)/2
+                    in
+                    if upper < !cur_max then 0
+                    else
+                        let (mmin, mresult) = Hashtbl.find tab state in
+                        if mmin > minute then raise Exit
+                        else mresult
+                with _ -> comp()
+            end
     in
 
     max_geo 0 (robots, resources)
 ;;
-
 
 (* MAIN *)
 
@@ -155,67 +163,55 @@ let blueprints = get_blueprints [] in
 let rec quality_sum blueprints id sum =
     match blueprints with
     | blueprint::rest -> begin
-        (* let tab: (t1, t2) Hashtbl.t = Hashtbl.create initial_table_size in *)
+        let tab: (t1, t2) Hashtbl.t = Hashtbl.create initial_table_size in
         let cur_max = ref 0 in
-        let cur_geo = maximum_geodes cur_max blueprint start_robots start_res in
+        (* let cur_geo = maximum_geodes cur_max blueprint start_robots start_res in *)
+        let cur_geo = maximum_geodes tab cur_max blueprint start_robots start_res in
         print_endline (string_of_int cur_geo);
         quality_sum rest (id+1) (sum+cur_geo*id)
     end
     | [] -> sum
 in print_int (quality_sum blueprints 1 0); print_newline ();;
 
-(* THAT WAS GOOD *)
-(*======================================================================*)
-(* type t1 = resources * resources *)
-(* type t2 = int * int *)
-
-(* let maximum_geodes tab cur_max blueprint robots resources = *)
+(* let maximum_geodes cur_max blueprint robots resources = *)
 (*     let rec max_geo minute (robots, resources) = *)
 (*         if minute >= minutes then *)
-(*             begin *)
-(*                 let geodes = get_geo resources in *)
-(*                 if !cur_max < geodes then cur_max := geodes *)
-(*                 else (); geodes *)
-(*             end *)
+(*             let geodes = get_geo resources in *)
+(*             if !cur_max < geodes then cur_max := geodes *)
+(*             else (); geodes *)
 
 (*         else *)
-(*             begin *)
-(*                 let state = (robots, resources) in *)
-(*                 let comp () = *)
-(*                     let nmin = minute + 1 in *)
-(*                     let update ((wo, wc, wb, wg), (ro, rc, rb, rg)) = *)
-(*                         (ro+wo, rc+wc, rb+wb, rg+wg) *)
-(*                     in *)
-(*                     let updated = update state in *)
+(*             let time_left = (minutes - minute + 1) in *)
+(*             let upper = *)
+(*                 time_left * (get_geo robots + 1) + *)
+(*                 time_left * (time_left - 1)/2 *)
+(*             in *)
 
-(*                     let p1 = List.map (fun x -> produce state (Some x)) blueprint in *)
-(*                     let p2 = List.map Option.get (List.filter ((!=) None) p1) in *)
-(*                     let p3 = List.map (fun (w, r) -> (w, update (robots, r))) p2 in *)
-(*                     let p4 = List.map (max_geo nmin) p3 in *)
-(*                     let p5 = List.fold_left max 0 p4 in *)
-(*                     let total = max (max_geo (minute+1) (robots, updated)) p5 in *)
-(*                     Hashtbl.replace tab state (minute, total); total *)
+(*             if upper < !cur_max then 0 *)
+(*             else *)
+(*                 let state = (robots, resources) in *)
+(*                 let nmin = minute + 1 in *)
+(*                 let update ((wo, wc, wb, wg), (ro, rc, rb, rg)) = *)
+(*                     (ro+wo, rc+wc, rb+wb, rg+wg) *)
+(*                 in *)
+(*                 let updated = update state in *)
+
+(*                 let p1 = *)
+(*                     List.map (fun x -> produce state (Some x)) blueprint *)
+(*                 in *)
+(*                 let p2 = List.map Option.get (List.filter ((!=) None) p1) in *)
+(*                 let p3 = *)
+(*                     List.map (fun (w, r) -> (w, update (robots, r))) p2 *)
 (*                 in *)
 
-(*                 try *)
-(*                     let time_left = (minutes - minute + 1) in *)
-(*                     let upper = *)
-(*                         time_left * (get_geo robots + 1) + *)
-(*                         time_left * (time_left + 1)/2 *)
-(*                     in *)
-(*                     if upper < !cur_max then 0 *)
-(*                     else *)
-(*                         let (mmin, mresult) = Hashtbl.find tab state in *)
-(*                         if mmin > minute then raise Exit *)
-(*                         else mresult *)
-(*                 with _ -> comp() *)
-(*             end *)
+(*                 let p4 = List.map (max_geo nmin) p3 in *)
+(*                 let p5 = List.fold_left max 0 p4 in *)
+(*                 let total = max (max_geo nmin (robots, updated)) p5 in *)
+(*                 total *)
 (*     in *)
 
 (*     max_geo 0 (robots, resources) *)
 (* ;; *)
-(*======================================================================*)
-
 
 (* type t1 = resources * resources *)
 (* type t2 = int * int *)
