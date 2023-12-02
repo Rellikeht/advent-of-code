@@ -16,5 +16,5 @@ a.out
 *.swp
 *~
 
-!input*
-!tinput*
+!*input*
+!*tinput*
