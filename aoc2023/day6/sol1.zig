@@ -1,0 +1,52 @@
+const std = @import("std");
+const mem = std.mem;
+const fmt = std.fmt;
+const math = std.math;
+
+const numt = u64;
+const List = std.ArrayList(numt);
+
+pub fn main() !void {
+    var input: [1024]u8 = undefined;
+    const stdin = std.io.getStdIn().reader();
+    const stdout = std.io.getStdOut().writer();
+
+    var gp = std.heap.GeneralPurposeAllocator(.{ .safety = true }){};
+    defer _ = gp.deinit();
+    const allocator = gp.allocator();
+    var times = List.init(allocator);
+    defer times.deinit();
+
+    var line = try stdin.readUntilDelimiterOrEof(&input, '\n');
+    var split = mem.splitScalar(u8, line orelse "", ':');
+    _ = split.next();
+    var nsplit = mem.splitScalar(u8, split.next() orelse "", ' ');
+
+    while (nsplit.next()) |elem| {
+        if (elem.len == 0 or elem[0] == ' ') continue;
+        try times.append(try fmt.parseInt(numt, elem, 10));
+    }
+
+    line = try stdin.readUntilDelimiterOrEof(&input, '\n');
+    split = mem.splitScalar(u8, line orelse "", ':');
+    _ = split.next();
+    nsplit = mem.splitScalar(u8, split.next() orelse "", ' ');
+
+    var prod: numt = 1;
+    var i: usize = 0;
+
+    while (nsplit.next()) |elem| {
+        if (elem.len == 0 or elem[0] == ' ') continue;
+        var tmp = try fmt.parseInt(numt, elem, 10);
+        tmp = math.pow(numt, times.items[i], 2) - 4 * tmp;
+        var del = math.sqrt(@as(f32, @floatFromInt(tmp)));
+        _ = del;
+        tmp = @as(numt, @intFromFloat(math.ceil()));
+        try stdout.print("{}\n\n", .{tmp});
+
+        prod *= tmp;
+        i += 1;
+    }
+
+    try stdout.print("{}\n", .{prod});
+}
