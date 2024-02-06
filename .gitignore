@@ -6,6 +6,7 @@
 !*.*
 
 a.out
+*.exe
 *.o
 *.so
 *.hi
@@ -18,3 +19,6 @@ a.out
 
 !*input*
 !*tinput*
+
+_build
+!dune

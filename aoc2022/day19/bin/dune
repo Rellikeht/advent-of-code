@@ -1,0 +1,4 @@
+(executable
+ (public_name data_parser)
+ (name main)
+ (libraries data_parser yojson))
