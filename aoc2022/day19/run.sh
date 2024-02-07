@@ -1,2 +1,6 @@
 #!/usr/bin/env sh
-dune exec data_parser "$1"
+
+if [ -n "$1" ]
+then dune exec data_parser "$1"
+else dune exec data_parser
+fi
