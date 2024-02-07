@@ -21,4 +21,4 @@ a.out
 !*tinput*
 
 _build
-!dune
+!dune[^.]*
