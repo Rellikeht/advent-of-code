@@ -75,8 +75,9 @@ let output_file =
         then [input_file]
         else List.rev @@ List.tl @@ List.rev parts
     in
-    String.concat "" @@ List.concat [main;[".json"]]
-;;
-
-Basic.to_file output_file json_data;;
+    let name = String.concat "" @@ List.concat [main;[".json"]] in
+    open_out name
+in
+Basic.pretty_to_channel output_file json_data;
+close_out output_file;
 (* print_endline @@ pretty_to_string json_data;; *)
