@@ -56,14 +56,25 @@ constraint forall(i in Wtime, j in Blueprints)(
     % (blueprints[j, 5] <= resources[i-1, j, 1] /\
     % blueprints[j, 6] <= resources[i-1, j, 3] /\
 
-constraint forall(i in Wtime, j in Blueprints)(
-    resources[i, j, 3] == resources[i-1, j, 3] + robots[i-1, j, 3] \/
-    (resources[i, j, 3] == resources[i-1, j, 3] + robots[i-1, j, 3] - blueprints[j, 6] /\
-    resources[i, j, 1] == resources[i-1, j, 1] + robots[i-1, j, 1] - blueprints[j, 5] /\
-    robots[i, j, 4] == robots[i-1, j, 4]+1
-    )
-);
+% This isn't that easy, should go by resource not by robot
+%% Ore
+%constraint forall(i in Wtime, j in Blueprints)(
+%    resources[i, j, 1] == resources[i-1, j, 1] + robots[i-1, j, 1] \/
+%    (resources[i, j, 1] == resources[i-1, j, 1] + robots[i-1, j, 1] - blueprints[j, 1] /\
+%    robots[i, j, 1] == robots[i-1, j, 1]+1
+%    ) \/ ()
+%);
+%
+%% Geode robot and resources for it
+%constraint forall(i in Wtime, j in Blueprints)(
+%    resources[i, j, 3] == resources[i-1, j, 3] + robots[i-1, j, 3] \/
+%    (resources[i, j, 3] == resources[i-1, j, 3] + robots[i-1, j, 3] - blueprints[j, 6] /\
+%    resources[i, j, 1] == resources[i-1, j, 1] + robots[i-1, j, 1] - blueprints[j, 5] /\
+%    robots[i, j, 4] == robots[i-1, j, 4]+1
+%    )
+%);
 
+% Geode
 constraint forall(i in Wtime, j in Blueprints)(
     resources[i, j, 4] == resources[i-1, j, 4] + robots[i-1, j, 4]
 );
