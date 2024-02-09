@@ -6,9 +6,7 @@ let input_file =
     then "tinput"
     else Sys.argv.(1)
 ;;
-
 if not @@ Sys.file_exists input_file then exit 1 ;;
-(* @@ is $ and |> is ??? *)
 
 let get_blueprint line =
     let (num, parts) =
@@ -31,16 +29,10 @@ let get_blueprint line =
     let one_res_part part =
         let words = String.split_on_char ' ' part in
         int_of_string @@ List.nth words 5
-        (* let _ = List.map (fun x -> print_string x; print_string " - ") words in *)
-        (* print_newline (); *)
-        (* 0 *)
     in
     let two_res_part part =
         let words = String.split_on_char ' ' part in
         (int_of_string @@ List.nth words 5, int_of_string @@ List.nth words 8)
-        (* let _ = List.map (fun x -> print_string x; print_string " - ") words in *)
-        (* print_newline (); *)
-        (* (0, 0) *)
     in
 
     let l1 = List.hd parts in
@@ -65,18 +57,6 @@ let data =
     in
     List.map get_blueprint @@ get_lines []
 ;;
-
-(* let _ = List.map (fun y -> *)
-(*     let _ = (List.map (fun x -> print_int x; print_char ' ') y) in *)
-(*     print_newline ()) *)
-(* data;; *)
-
-(* let make_record (data: int list) : Yojson.Basic.t = *)
-(*     `Assoc [ *)
-(*         ("number", `Int (List.hd data)); *)
-(*         ("values", `List (List.map (fun x -> (`Int x)) (List.tl data))) *)
-(*     ] *)
-(* ;; *)
 
 let make_record (data: int list) =
     `List (List.map (fun x -> (`Int x)) (List.tl data))
