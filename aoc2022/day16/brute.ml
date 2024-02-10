@@ -49,8 +49,10 @@ let opened = ref Vset.empty in
 
 let rec optimize vert time speed pres left =
     let time_left = max_time - time in
-    if time >= max_time then pres
-    else if left == 0 then pres + speed*time_left
+    if time_left <= 0 then pres
+    else if left == 0 then begin
+        pres + speed*time_left
+    end
     else begin
 
         let pres_next = pres + speed in
@@ -84,7 +86,7 @@ let rec optimize vert time speed pres left =
             (fun v -> optimize v ntime speed_next pres_next left_next) @@
             Hashtbl.find graph vert
         in
-        opened := Vset.remove vert !opened;
+        if left_next != left then opened := Vset.remove vert !opened;
         max_res
     end
 in

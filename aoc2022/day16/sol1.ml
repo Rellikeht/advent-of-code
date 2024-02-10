@@ -52,12 +52,11 @@ let cur_max = ref 0 in
 
 let rec optimize vert time speed pres left =
     let time_left = max_time - time in
-    if time >= max_time then begin
+    if time_left <= 0 then begin
         cur_max := max pres !cur_max; pres
     end
-    else if left = 0 then begin
+    else if left == 0 then begin
         let result = pres + speed*time_left in
-        print_int @@ Vset.cardinal !opened; print_newline ();
         cur_max := max result !cur_max; result
     end
     else if pres+time_left*max_speed < !cur_max then 0
@@ -81,7 +80,6 @@ let rec optimize vert time speed pres left =
                 Hashtbl.find graph vert
         in
 
-        (* opened := Vset.add vert !opened; *)
         let ntime =
             if left_next == left then time+1
             else begin
@@ -95,7 +93,7 @@ let rec optimize vert time speed pres left =
             (fun v -> optimize v ntime speed_next pres_next left_next) @@
             Hashtbl.find graph vert
         in
-        opened := Vset.remove vert !opened;
+        if left_next != left then opened := Vset.remove vert !opened;
         max_res
     end
 in
