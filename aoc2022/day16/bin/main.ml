@@ -48,7 +48,6 @@ close_in channel;
 let (names, values) =
     let (p1, p2) =
         Seq.unzip @@
-        Seq.map (fun (x, y) -> (`String x, `Int y)) @@
         List.to_seq @@
         List.sort (fun x y -> String.compare (fst x) (fst y)) @@
         List.of_seq @@
@@ -56,14 +55,34 @@ let (names, values) =
     in
     (List.of_seq p1, List.of_seq p2)
 in
+let numbers =
+    let tbl = Hashtbl.create (Hashtbl.length flow_rates) in
+    List.iteri (fun i n -> Hashtbl.replace tbl n i) names;
+    tbl
+in
+let paths =
+    let make_connections l =
+        List.map (Hashtbl.find numbers) l |>
+        List.map (fun x -> `Int x)
+    in
+    List.map (Hashtbl.find graph) names |>
+    List.map make_connections |>
+    List.map (fun x -> `List x)
+in
 
-(* TODO graph *)
-
+let number_list =
+    List.map (Hashtbl.find numbers) names |>
+    List.map (fun x -> `Int x)
+in
+let names = List.map (fun x -> `String x) names in
+let values = List.map (fun x -> `Int x) values in
 let json_data =
     `Assoc [
         ("N", `Int (Hashtbl.length flow_rates));
         ("names", `List names);
-        ("flowRates", `List values)
+        ("numbers", `List number_list);
+        ("flowRates", `List values);
+        ("paths", `List paths)
     ]
 in
 
@@ -77,5 +96,6 @@ let output_file =
     let name = String.concat "" @@ List.concat [main;[".json"]] in
     open_out name
 in
+
 Basic.pretty_to_channel output_file json_data;
 close_out output_file;
