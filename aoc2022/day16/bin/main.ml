@@ -1,5 +1,4 @@
 open Yojson;;
-
 let input_file =
     if Array.length Sys.argv < 2
     then "tinput"
@@ -60,9 +59,22 @@ let numbers =
     List.iteri (fun i n -> Hashtbl.replace tbl n i) names;
     tbl
 in
+
+let max_paths =
+    Hashtbl.to_seq_values graph |>
+    Seq.map List.length |>
+    Seq.fold_left max 0
+in
 let paths =
     let make_connections l =
+        let ll = List.length l in
+        let filling =
+            List.of_seq @@
+            Seq.take (max_paths - ll) @@
+            Seq.repeat (-1)
+        in
         List.map (Hashtbl.find numbers) l |>
+        fun l -> List.append l filling |>
         List.map (fun x -> `Int x)
     in
     List.map (Hashtbl.find graph) names |>
@@ -70,17 +82,13 @@ let paths =
     List.map (fun x -> `List x)
 in
 
-let number_list =
-    List.map (Hashtbl.find numbers) names |>
-    List.map (fun x -> `Int x)
-in
 let names = List.map (fun x -> `String x) names in
 let values = List.map (fun x -> `Int x) values in
 let json_data =
     `Assoc [
         ("N", `Int (Hashtbl.length flow_rates));
+        ("pathsMax", `Int max_paths);
         ("names", `List names);
-        ("numbers", `List number_list);
         ("flowRates", `List values);
         ("paths", `List paths)
     ]
