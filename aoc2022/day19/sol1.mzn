@@ -3,8 +3,8 @@
 
 int: N;
 int: maxType = 4;
-%int: maxTime = 24;
-int: maxTime = 14;
+int: maxTime = 20;
+% int: maxTime = 24;
 
 set of int: Time = 0..maxTime;
 set of int: Wtime = 1..maxTime;
@@ -17,16 +17,15 @@ set of int: Types = 1..maxType;
 % ore and obsidian for geode robot
 array[Blueprints, 1..6] of int: blueprints;
 
-int: maxResource = maxTime*(maxTime-1);
+int: maxResource = maxTime*(maxTime-1) div 2;
 set of int: Resources = 0..maxResource;
-set of int: Robots = 0..maxTime+1;
+set of int: Robots = 0..maxTime;
 
 % ore, clay, obisidian, geode
 array[Time, Blueprints, Types] of var Resources: resources;
 array[Time, Blueprints, Types] of var Robots: robots;
-var Resources: maxQuality;
-var Blueprints: bestBlueprint;
-%var 0..N: bestBlueprint;
+array[Blueprints] of var Resources: quality;
+constraint forall(i in Blueprints)(quality[i] == resources[maxTime, i, 4]);
 
 constraint forall(i in Blueprints, j in Types)(resources[0, i, j] == 0);
 constraint forall(i in Blueprints)(robots[0, i, 1] == 1);
@@ -38,9 +37,6 @@ constraint forall(i in Wtime, j in Blueprints)(
 constraint forall(i in Wtime, j in Blueprints, k in Types)(
     (robots[i, j, k] == robots[i-1, j, k]+1) \/
     (robots[i, j, k] == robots[i-1, j, k])
-);
-constraint forall(i in Wtime, j in Blueprints, k in Types)(
-    robots[i, j, k] >= robots[i-1, j, k]
 );
 
 % ore is used in all robots
@@ -104,22 +100,81 @@ constraint forall(i in Wtime, j in Blueprints)(
     resources[i, j, 4] == resources[i-1, j, 4] + robots[i-1, j, 4]
 );
 
-constraint maxQuality == max(i in Blueprints)(resources[maxTime, i, maxType]);
-constraint bestBlueprint = max([
-    if resources[maxTime, i, maxType] == maxQuality
-    then i else 0
-    endif | i in Blueprints
-]);
+% And the optimizations
 
-solve maximize maxQuality;
-output ["\(bestBlueprint)\n"];
+%% robots
 
-output ["\([
-  show(i in Types)(resources[t, b, i]) ++ " " ++
-  show(i in Types)(robots[t, b, i])
-| b in Blueprints])\n" | t in Time
-];
+constraint forall(i in Wtime, j in Blueprints)(
+    sum([robots[i, j, k] | k in Types]) <= i+1
+);
+constraint forall(i in Wtime, j in Blueprints, k in Types)(
+    robots[i, j, k] >= robots[i-1, j, k]
+);
 
+constraint forall(i in Time, j in Blueprints)(
+    robots[i, j, 1] <= max(1, i + 1 - blueprints[j, 1])
+);
+
+constraint forall(i in Time, j in Blueprints)(
+    robots[i, j, 2] <= max(0, i + 1
+      - blueprints[j, 2]
+      )
+);
+
+constraint forall(i in Time, j in Blueprints)(
+    robots[i, j, 3] <= max(0, i + 1 - blueprints[j, 2]
+      - min(blueprints[j, 3], blueprints[j, 4])
+      )
+    );
+
+constraint forall(i in Time, j in Blueprints)(
+    robots[i, j, 4] <= max(0, i + 1 - blueprints[j, 2]
+      - min(blueprints[j, 3], blueprints[j, 4])
+      - min(blueprints[j, 5], blueprints[j, 6])
+      )
+);
+
+%% resources
+
+constraint forall(i in Time, j in Blueprints)(
+    sum([resources[i, j, k] | k in Types]) <= max(i,
+      i*(i-3) div 2
+    )
+);
+
+constraint forall(i in Time, j in Blueprints)(
+    resources[i, j, 2] <= max(0,
+      i*(i-3) div 2 - blueprints[j, 2]
+    )
+);
+
+constraint forall(i in Time, j in Blueprints)(
+    resources[i, j, 3] <= max(0,
+      i*(i-3) div 2 - blueprints[j, 2]
+      - min(blueprints[j, 3], blueprints[j, 4])
+    )
+);
+
+constraint forall(i in Time, j in Blueprints)(
+    resources[i, j, 4] <= max(0,
+      i*(i-3) div 2 - blueprints[j, 2]
+      - min(blueprints[j, 3], blueprints[j, 4])
+      - min(blueprints[j, 5], blueprints[j, 6])
+    )
+);
+
+% Output
+
+solve maximize sum(quality);
+
+% output ["\([(i, quality[i], i*quality[i]) | i in Blueprints])\n"];
+output ["\(sum([i*quality[i] | i in Blueprints]))\n"];
+
+% output ["\([
+%   show(i in Types)(resources[t, b, i]) ++ " " ++
+%   show(i in Types)(robots[t, b, i])
+% | b in Blueprints])\n" | t in Time
+% ];
 
 %output ["\([
 %  "\([resources[t, b, i] | i in Types]) " ++
@@ -131,8 +186,3 @@ output ["\([
 %  "\([resources[maxTime, b, i] | i in Types]) " ++
 %  "\([robots[maxTime, b, i] | i in Types])\n"
 %| b in Blueprints];
-
-%array[Blueprints] of var int: quality;
-%constraint forall(i in Blueprints)(quality[i] == resources[maxTime, i, 4]);
-%constraint maxQuality == max(quality);
-%constraint bestBlueprint = max([if quality[i] == maxQuality then i else -1 endif | i in 1..N]);
