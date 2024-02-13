@@ -3,7 +3,8 @@ const mem = std.mem;
 const fmt = std.fmt;
 const math = std.math;
 
-const numt = u64;
+const numt = i64;
+const fltt = f64;
 const List = std.ArrayList(numt);
 
 pub fn main() !void {
@@ -38,12 +39,12 @@ pub fn main() !void {
     while (nsplit.next()) |elem| {
         if (elem.len == 0 or elem[0] == ' ') continue;
         var tmp = try fmt.parseInt(numt, elem, 10);
-        tmp = math.pow(numt, times.items[i], 2) - 4 * tmp;
-        var del = math.sqrt(@as(f32, @floatFromInt(tmp)));
-        _ = del;
-        tmp = @as(numt, @intFromFloat(math.ceil()));
-        try stdout.print("{}\n\n", .{tmp});
-
+        tmp = times.items[i] * times.items[i] - 4 * tmp;
+        var del = math.sqrt(@as(fltt, @floatFromInt(tmp)));
+        var b = @as(fltt, @floatFromInt(times.items[i]));
+        var s1 = @as(numt, @intFromFloat(math.floor((-b - del) / 2)));
+        var s2 = @as(numt, @intFromFloat(math.ceil((-b + del) / 2)));
+        tmp = s2 - s1 - 1;
         prod *= tmp;
         i += 1;
     }
