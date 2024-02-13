@@ -4,7 +4,7 @@
 int: N;
 int: maxType = 4;
 %int: maxTime = 24;
-int: maxTime = 4;
+int: maxTime = 14;
 
 set of int: Time = 0..maxTime;
 set of int: Wtime = 1..maxTime;
@@ -17,7 +17,7 @@ set of int: Types = 1..maxType;
 % ore and obsidian for geode robot
 array[Blueprints, 1..6] of int: blueprints;
 
-int: maxResource = N*N;
+int: maxResource = maxTime*(maxTime-1);
 set of int: Resources = 0..maxResource;
 set of int: Robots = 0..maxTime+1;
 
@@ -25,54 +25,79 @@ set of int: Robots = 0..maxTime+1;
 array[Time, Blueprints, Types] of var Resources: resources;
 array[Time, Blueprints, Types] of var Robots: robots;
 var Resources: maxQuality;
-var 0..N: bestBlueprint;
+var Blueprints: bestBlueprint;
+%var 0..N: bestBlueprint;
 
 constraint forall(i in Blueprints, j in Types)(resources[0, i, j] == 0);
 constraint forall(i in Blueprints)(robots[0, i, 1] == 1);
 constraint forall(i in Blueprints, j in 2..maxType)(robots[0, i, j] == 0);
+constraint forall(i in Wtime, j in Blueprints)(
+    sum(k in Types)(robots[i, j, k]) == sum(k in Types)(robots[i-1, j, k])+1 \/
+    sum(k in Types)(robots[i, j, k]) == sum(k in Types)(robots[i-1, j, k])
+);
 constraint forall(i in Wtime, j in Blueprints, k in Types)(
     (robots[i, j, k] == robots[i-1, j, k]+1) \/
     (robots[i, j, k] == robots[i-1, j, k])
 );
-constraint forall(i in Wtime, j in Blueprints)(
-    sum(k in Types)(robots[i, j, k]) == sum(k in Types)(robots[i-1, j, k])+1 \/
-    sum(k in Types)(robots[i, j, k]) == sum(k in Types)(robots[i-1, j, k])
+constraint forall(i in Wtime, j in Blueprints, k in Types)(
+    robots[i, j, k] >= robots[i-1, j, k]
 );
 
 % ore is used in all robots
 % clay in obsidian
 % obsidian in geode
 
-%constraint forall(i in Wtime, j in Blueprints)(
-%    resources[i, j, 1] == resources[i-1, j, 1] + robots[i-1, j, 1] \/
-%    (blueprints[j, 1] <= resources[i-1, j, 1] /\
-%    resources[i, j, 1] == resources[i-1, j, 1] +
-%    robots[i-1, j, 1] - blueprints[j, 1])
-%);
+% Ore robot
+constraint forall(i in Wtime, j in Blueprints)(
+    if resources[i-1, j, 1] < blueprints[j, 1]
+    then robots[i, j, 1] == robots[i-1, j, 1] endif
+);
 
-% TODO resources
+% Clay robot
+constraint forall(i in Wtime, j in Blueprints)(
+    if resources[i-1, j, 1] < blueprints[j, 2]
+    then robots[i, j, 2] == robots[i-1, j, 2] endif
+);
 
-% Maybe other constraints will stop this
-    % (blueprints[j, 5] <= resources[i-1, j, 1] /\
-    % blueprints[j, 6] <= resources[i-1, j, 3] /\
+% Obsidian robot
+constraint forall(i in Wtime, j in Blueprints)(
+    if resources[i-1, j, 1] < blueprints[j, 3] \/
+    resources[i-1, j, 2] < blueprints[j, 4]
+    then robots[i, j, 3] == robots[i-1, j, 3] endif
+);
+
+% Geode robot
+constraint forall(i in Wtime, j in Blueprints)(
+    if resources[i-1, j, 1] < blueprints[j, 5] \/
+    resources[i-1, j, 3] < blueprints[j, 6]
+    then robots[i, j, 4] == robots[i-1, j, 4] endif
+);
 
 % This isn't that easy, should go by resource not by robot
-%% Ore
-%constraint forall(i in Wtime, j in Blueprints)(
-%    resources[i, j, 1] == resources[i-1, j, 1] + robots[i-1, j, 1] \/
-%    (resources[i, j, 1] == resources[i-1, j, 1] + robots[i-1, j, 1] - blueprints[j, 1] /\
-%    robots[i, j, 1] == robots[i-1, j, 1]+1
-%    ) \/ ()
-%);
-%
-%% Geode robot and resources for it
-%constraint forall(i in Wtime, j in Blueprints)(
-%    resources[i, j, 3] == resources[i-1, j, 3] + robots[i-1, j, 3] \/
-%    (resources[i, j, 3] == resources[i-1, j, 3] + robots[i-1, j, 3] - blueprints[j, 6] /\
-%    resources[i, j, 1] == resources[i-1, j, 1] + robots[i-1, j, 1] - blueprints[j, 5] /\
-%    robots[i, j, 4] == robots[i-1, j, 4]+1
-%    )
-%);
+
+% Ore
+constraint forall(i in Wtime, j in Blueprints)(
+    resources[i, j, 1] == resources[i-1, j, 1] + robots[i-1, j, 1] -
+    if robots[i, j, 1] == robots[i-1, j, 1]+1 then blueprints[j, 1]
+    elseif robots[i, j, 2] == robots[i-1, j, 2]+1 then blueprints[j, 2]
+    elseif robots[i, j, 3] == robots[i-1, j, 3]+1 then blueprints[j, 3]
+    elseif robots[i, j, 4] == robots[i-1, j, 4]+1 then blueprints[j, 5]
+    else 0 endif
+);
+
+% Clay
+constraint forall(i in Wtime, j in Blueprints)(
+    resources[i, j, 2] == resources[i-1, j, 2] + robots[i-1, j, 2] -
+    if robots[i, j, 3] == robots[i-1, j, 3]+1
+    then blueprints[j, 4] else 0 endif
+);
+
+% Obsidian
+constraint forall(i in Wtime, j in Blueprints)(
+    resources[i, j, 3] == resources[i-1, j, 3] + robots[i-1, j, 3] -
+    if robots[i, j, 4] == robots[i-1, j, 4]+1
+    then blueprints[j, 6] else 0 endif
+);
 
 % Geode
 constraint forall(i in Wtime, j in Blueprints)(
@@ -95,6 +120,7 @@ output ["\([
 | b in Blueprints])\n" | t in Time
 ];
 
+
 %output ["\([
 %  "\([resources[t, b, i] | i in Types]) " ++
 %  "\([robots[t, b, i] | i in Types])\n"
@@ -105,7 +131,6 @@ output ["\([
 %  "\([resources[maxTime, b, i] | i in Types]) " ++
 %  "\([robots[maxTime, b, i] | i in Types])\n"
 %| b in Blueprints];
-
 
 %array[Blueprints] of var int: quality;
 %constraint forall(i in Blueprints)(quality[i] == resources[maxTime, i, 4]);
