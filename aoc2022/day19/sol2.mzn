@@ -3,7 +3,7 @@
 
 int: N;
 int: maxType = 4;
-int: maxTime = 45;
+int: maxTime = 32;
 
 set of int: Time = 0..maxTime;
 set of int: Wtime = 1..maxTime;
@@ -166,22 +166,4 @@ constraint forall(i in Time, j in Blueprints)(
 
 solve maximize sum(quality);
 
-% output ["\([(i, quality[i], i*quality[i]) | i in Blueprints])\n"];
 output ["\(product([quality[i] | i in Blueprints]))\n"];
-
-% output ["\([
-%   show(i in Types)(resources[t, b, i]) ++ " " ++
-%   show(i in Types)(robots[t, b, i])
-% | b in Blueprints])\n" | t in Time
-% ];
-
-%output ["\([
-%  "\([resources[t, b, i] | i in Types]) " ++
-%  "\([robots[t, b, i] | i in Types])\n"
-%| b in Blueprints])\n" | t in Time
-%];
-
-%output [
-%  "\([resources[maxTime, b, i] | i in Types]) " ++
-%  "\([robots[maxTime, b, i] | i in Types])\n"
-%| b in Blueprints];
