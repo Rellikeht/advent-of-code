@@ -3,8 +3,8 @@
 
 int: N;
 int: maxType = 4;
-int: maxTime = 20;
-% int: maxTime = 24;
+% int: maxTime = 20;
+int: maxTime = 24;
 
 set of int: Time = 0..maxTime;
 set of int: Wtime = 1..maxTime;
