@@ -16,6 +16,7 @@ Because writing programs like that is usually easier and simpler
 
 # Languages
 
+- 2024 - rust
 - 2023 - zig
 - 2022 - ocaml
 - 2021 - each day different language

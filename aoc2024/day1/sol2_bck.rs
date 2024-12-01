@@ -13,10 +13,9 @@ pub fn main() {
         right[v2] += 1;
     }
 
-    println!(
-        "{}",
-        left.iter()
-            .map(|e| e * right[*e as usize])
-            .fold(0, |a, e| a + e)
-    );
+    let mut sum = 0;
+    for e in left {
+        sum += e * right[e as usize];
+    }
+    println!("{}", sum);
 }
