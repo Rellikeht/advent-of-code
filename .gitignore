@@ -26,3 +26,4 @@ a.out
 
 _build
 !dune[^.]*
+target/
