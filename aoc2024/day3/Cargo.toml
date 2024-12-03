@@ -1,0 +1,15 @@
+[package]
+name = "day"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+regex = "1.3"
+
+[[bin]]
+name = "sol1"
+path = "sol1.rs"
+
+[[bin]]
+name = "sol2"
+path = "sol2.rs"
