@@ -6,30 +6,50 @@ pub fn find_xs(grid: &Vec<&mut [u8]>, text: &[u8]) -> Num {
     for sy in 0..(grid.len() - text.len() + 1) {
         for sx in 0..(grid[0].len() - text.len() + 1) {
             let (mut pslash, mut mslash, mut pback, mut mback) = (true, true, true, true);
-            let (mut x, mut y) = (0, 0);
             let last = text.len() - 1;
-            count += 1;
+            let (mut x, mut y) = (sx as Num, sy as Num);
 
             for i in 0..text.len() {
-                if pback && grid[sy + y][sx + x] != text[i] {
+                if grid[y as usize][x as usize] != text[i] {
                     pback = false;
-                }
-                if mback && grid[sy + last - y][sx + last - x] != text[i] {
-                    mback = false;
-                }
-                if pslash && grid[sy + y][sx + last - x] != text[i] {
-                    pslash = false;
-                }
-                if mslash && grid[sy + last - y][sx + x] != text[i] {
-                    mslash = false;
-                }
-
-                if !((pslash || mslash) && (pback || mback)) {
-                    count -= 1;
                     break;
                 }
                 x += 1;
                 y += 1;
+            }
+
+            (x, y) = ((sx + last) as Num, (sy + last) as Num);
+            for i in 0..text.len() {
+                if grid[y as usize][x as usize] != text[i] {
+                    mback = false;
+                    break;
+                }
+                x -= 1;
+                y -= 1;
+            }
+
+            (x, y) = (sx as Num, (sy + last) as Num);
+            for i in 0..text.len() {
+                if grid[y as usize][x as usize] != text[i] {
+                    pslash = false;
+                    break;
+                }
+                x += 1;
+                y -= 1;
+            }
+
+            (x, y) = ((sx + last) as Num, sy as Num);
+            for i in 0..text.len() {
+                if grid[y as usize][x as usize] != text[i] {
+                    mslash = false;
+                    break;
+                }
+                x -= 1;
+                y += 1;
+            }
+
+            if (pslash || mslash) && (pback || mback) {
+                count += 1;
             }
         }
     }
