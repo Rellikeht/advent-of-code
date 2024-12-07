@@ -21,7 +21,7 @@ check ( target, n : ns )
     | otherwise = 0
   where
     find target n [] = target == n
-    find target n (x : xs) = add || mul || conc
+    find target n (x : xs) = (n <= target) && (add || mul || conc)
       where
         add = find target (n + x) xs
 
