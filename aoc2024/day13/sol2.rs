@@ -21,32 +21,21 @@ pub fn get_info(line: String) -> (Num, Num) {
 }
 
 pub fn find(a: (Num, Num), b: (Num, Num), target: (Num, Num)) -> Option<Num> {
-    let mut min: Option<Num> = None;
-    let (mut x, mut y) = (0, 0);
-    let mut cost = 0;
-
-    loop {
-        if x > target.0 || y > target.1 {
-            break;
-        }
-
-        if (target.0 - x) % b.0 == 0 && (target.1 - y) % b.1 == 0 {
-            let (bx, by) = ((target.0 - x) / b.0, (target.1 - y) / b.1);
-            if bx == by {
-                let cost = cost + bx * B_COST;
-                min = match min {
-                    None => Some(cost),
-                    Some(n) => Some(Num::min(n, cost)),
-                };
-            }
-        }
-
-        x += a.0;
-        y += a.1;
-        cost += A_COST;
+    // solving system
+    let ma = a.1 * a.0 - a.0 * a.1;
+    let mb = b.1 * a.0 - b.0 * a.1;
+    let mt = target.1 * a.0 - target.0 * a.1;
+    if mt % mb != 0 {
+        return None;
     }
 
-    return min;
+    let y = mt / mb;
+    if (target.0 - b.0 * y) % a.0 != 0 {
+        return None;
+    }
+
+    let x = (target.0 - b.0 * y) / a.0;
+    return Some(x * A_COST + y * B_COST);
 }
 
 pub fn main() {
