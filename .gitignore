@@ -27,3 +27,4 @@ a.out
 _build
 !dune[^.]*
 target/
+*.mp4

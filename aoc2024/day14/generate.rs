@@ -4,10 +4,6 @@ use std::{env, io};
 
 type Num = i64;
 type Robot = (Num, Num, Num, Num);
-type Board<'a> = Vec<&'a mut [u8]>;
-
-const EMPTY: u8 = b' ';
-const ROBOT: u8 = b'#';
 
 fn get_size(line: &String) -> (usize, usize) {
     let mut s = line.split(' ');
@@ -39,30 +35,44 @@ fn next_frame(robots: &mut Vec<Robot>, size: &(usize, usize)) {
     }
 }
 
-fn print_board(robots: &Vec<Robot>, board: &mut Board) {
-    for i in 0..board.len() {
-        for j in 1..board[i].len() {
-            board[i][j] = EMPTY;
-        }
+fn print_robots(robots: &Vec<Robot>) {
+    let mut it = robots.iter();
+    let robot = it.next().unwrap();
+    print!("{},{}", robot.0, robot.1);
+    for robot in it {
+        print!(" {},{}", robot.0, robot.1);
     }
-    for r in robots {
-        board[r.0 as usize][r.1 as usize] = ROBOT;
-    }
-    for i in 0..board.len() {
-        for j in 1..board[i].len() {
-            print!("{} ", board[i][j] as char);
-        }
-        println!("");
-    }
+
+    // let mut it = robots.iter();
+    // let robot = it.next().unwrap();
+    // print!("{}", robot.0);
+    // for robot in it {
+    //     print!(" {}", robot.0);
+    // }
+    // let mut it = robots.iter();
+    // let robot = it.next().unwrap();
+    // print!(":{}", robot.1);
+    // for robot in it {
+    //     print!(" {}", robot.1);
+    // }
+
+    //
 }
 
 pub fn main() {
     let args: Vec<String> = env::args().collect();
     let fname: &str;
+    let steps: Num;
+
     if args.len() > 1 {
         fname = &args[1];
     } else {
         fname = "tinput";
+    }
+    if args.len() > 2 {
+        steps = args[2].parse().unwrap();
+    } else {
+        steps = 10_000;
     }
     let file = File::open(fname).unwrap();
 
@@ -71,31 +81,13 @@ pub fn main() {
     let size = get_size(&l1);
     let mut robots: Vec<_> = lines.map(|ln| get_robot(&ln.unwrap())).collect();
 
-    let mut state = vec![0 as u8; size.0 * size.1];
-    let mut board: Board = state.chunks_mut(size.1).collect();
-    let mut step = 0;
-
-    loop {
-        // hardcoded shit, because authors wanted that
-        if (step - 65) % 103 != 0 || (step - 114) % 101 != 0 {
-            next_frame(&mut robots, &size);
-            step += 1;
-            continue;
-        }
-
-        println!("Step {}:", step);
-        print_board(&robots, &mut board);
+    // for step in 0..(steps + 1) {
+    for _ in 0..(steps + 1) {
+        // print!("{}:", step);
+        // let mut line = String::new();
+        // io::stdin().read_line(&mut line).unwrap();
+        print_robots(&robots);
         println!("");
-        println!("");
-        println!("");
-        println!("");
-        println!("");
-
-        // This is leftover from endless trials of solving that shit
-        let mut line = String::new();
-        io::stdin().read_line(&mut line).unwrap();
-        if line.len() > 1 && line.as_bytes()[0] == b'q' {
-            break;
-        }
+        next_frame(&mut robots, &size);
     }
 }

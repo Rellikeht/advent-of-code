@@ -1,13 +1,20 @@
 use std::fs::File;
-use std::io::BufRead;
-use std::{env, io};
+use std::io::{stdin, stdout, BufRead, Write};
+use std::{env, io, thread, time};
+
+use termion::clear;
+use termion::cursor;
+use termion::cursor::DetectCursorPos;
+use termion::event::Key;
+use termion::input::TermRead;
+use termion::raw::IntoRawMode;
 
 type Num = i64;
 type Robot = (Num, Num, Num, Num);
 type Board<'a> = Vec<&'a mut [u8]>;
 
-const EMPTY: u8 = b' ';
-const ROBOT: u8 = b'#';
+const EMPTY: u8 = b'.';
+const ROBOT: u8 = b'*';
 
 fn get_size(line: &String) -> (usize, usize) {
     let mut s = line.split(' ');
@@ -33,10 +40,7 @@ fn get_robot(line: &String) -> Robot {
 }
 
 fn next_frame(robots: &mut Vec<Robot>, size: &(usize, usize)) {
-    for robot in robots.iter_mut() {
-        robot.0 = (robot.0 + robot.2 + size.0 as Num) % size.0 as Num;
-        robot.1 = (robot.1 + robot.3 + size.1 as Num) % size.1 as Num;
-    }
+    //
 }
 
 fn print_board(robots: &Vec<Robot>, board: &mut Board) {
@@ -45,14 +49,9 @@ fn print_board(robots: &Vec<Robot>, board: &mut Board) {
             board[i][j] = EMPTY;
         }
     }
+
     for r in robots {
         board[r.0 as usize][r.1 as usize] = ROBOT;
-    }
-    for i in 0..board.len() {
-        for j in 1..board[i].len() {
-            print!("{} ", board[i][j] as char);
-        }
-        println!("");
     }
 }
 
@@ -75,27 +74,48 @@ pub fn main() {
     let mut board: Board = state.chunks_mut(size.1).collect();
     let mut step = 0;
 
+    // some fucking useless shit needed for keys to work properly
+    let mut stdout = io::stdout().into_raw_mode().unwrap();
+    // iterator, because why do imperative things imperative way
+    let mut events = termion::async_stdin().keys();
+    let mut event;
+
     loop {
-        // hardcoded shit, because authors wanted that
-        if (step - 65) % 103 != 0 || (step - 114) % 101 != 0 {
-            next_frame(&mut robots, &size);
-            step += 1;
-            continue;
-        }
+        thread::sleep(time::Duration::from_millis(50));
+        // some useless shit, because why just give me fucking key
+        match events.next() {
+            Some(e) => {
+                event = e;
+            }
+            None => {
+                continue;
+            }
+        };
 
-        println!("Step {}:", step);
-        print_board(&robots, &mut board);
-        println!("");
-        println!("");
-        println!("");
-        println!("");
-        println!("");
-
-        // This is leftover from endless trials of solving that shit
-        let mut line = String::new();
-        io::stdin().read_line(&mut line).unwrap();
-        if line.len() > 1 && line.as_bytes()[0] == b'q' {
-            break;
+        // finally fucking parsing of the fucking key
+        // because why make things simple
+        match event.unwrap() {
+            Key::Char(c) => {
+                if c == 'q' {
+                    return;
+                }
+            }
+            _ => {}
         }
+        // at least this looks ok, but of course does
+        // it's job in a shitty way
+        // println!("{}", clear::All);
+
+        // needed, because not your fucking business
+        // works so shut up
+
+        write!(stdout, "Step {}", step).unwrap();
+        let cpos = stdout.cursor_pos().unwrap();
+        write!(stdout, "{}", cursor::Goto(1, cpos.1 + 1)).unwrap();
+        // print_board(&robots, &mut board);
+        stdout.lock().flush().unwrap();
+
+        next_frame(&mut robots, &size);
+        step += 1;
     }
 }

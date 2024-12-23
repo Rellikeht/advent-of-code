@@ -27,7 +27,7 @@ fn get_robot(line: &String) -> Robot {
     return (pos.0, pos.1, vel.0, vel.1);
 }
 
-fn get_position(robot: &Robot, size: &(Num, Num), steps: Num) -> (Num, Num) {
+fn calc_position(robot: &Robot, size: &(Num, Num), steps: Num) -> (Num, Num) {
     let max = (steps * size.0, steps * size.1);
     let px = (robot.0 + robot.2 * steps + max.0) % size.0;
     let py = (robot.1 + robot.3 * steps + max.1) % size.1;
@@ -48,7 +48,7 @@ pub fn main() {
     for ln in lines {
         let line = ln.unwrap();
         let robot = get_robot(&line);
-        let position = get_position(&robot, &size, 100);
+        let position = calc_position(&robot, &size, 100);
         if position.0 == half.0 || position.1 == half.1 {
             continue;
         }
