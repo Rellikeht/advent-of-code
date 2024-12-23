@@ -1,3 +1,5 @@
+using Base: eachline, EachLine
+
 const Rules = Dict{Int,Set{Int}}
 const Updates = Vector{Vector{Int}}
 
@@ -15,6 +17,7 @@ function getUpdate(line::String)::Vector{Int}
     end
 end
 
+# readline version
 function getInput(name::String)::Tuple{Rules,Updates}
     rules::Rules = Dict()
     updates::Updates = Vector()
@@ -28,13 +31,30 @@ function getInput(name::String)::Tuple{Rules,Updates}
             push!(rules[prev], next)
             line = readline(handle)
         end
-        while true
+        while !eof(handle)
             line = readline(handle)
-            if length(line) == 0
-                break
-            end
             push!(updates, getUpdate(line))
         end
+    end
+    return (rules, updates)
+end
+
+# iterator version (seems faster)
+function getInput(name::String)::Tuple{Rules,Updates}
+    rules::Rules = Dict()
+    updates::Updates = Vector()
+    iter::EachLine = eachline(name)
+    line::String = first(iter)
+    while length(line) > 0
+        prev::Int, next::Int = getRule(line)
+        if !(prev in keys(rules))
+            push!(rules, prev => Set())
+        end
+        push!(rules[prev], next)
+        line = first(iter)
+    end
+    for line in iter
+        push!(updates, getUpdate(line))
     end
     return (rules, updates)
 end

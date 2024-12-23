@@ -6,7 +6,7 @@ type Num = i64;
 pub fn solve(grid: &mut Vec<&mut [u8]>, start: (Num, Num)) -> Num {
     let (mut y, mut x) = start;
     let (mut dy, mut dx) = (-1 as Num, 0 as Num);
-    let (ex, ey) = ((grid.len() - 1) as Num, (grid[0].len() - 1) as Num);
+    let (ey, ex) = ((grid.len() - 1) as Num, (grid[0].len() - 1) as Num);
     let mut count = 1;
 
     loop {
@@ -17,21 +17,17 @@ pub fn solve(grid: &mut Vec<&mut [u8]>, start: (Num, Num)) -> Num {
         {
             break;
         }
-        // println!("({} {}) ({} {})", x, y, dx, dy);
 
-        let (px, py) = ((x + dx) as usize, (y + dy) as usize);
+        (y, x) = (y + dy, x + dx);
+        let (py, px) = (y as usize, x as usize);
+
         if grid[py][px] == b'#' {
+            (y, x) = (y - dy, x - dx);
             (dy, dx) = (dx, -dy);
-            continue;
-        }
-
-        if grid[py][px] == b'.' {
+        } else if grid[py][px] == b'.' {
             count += 1;
             grid[py][px] = b'X';
         }
-
-        x += dx;
-        y += dy;
     }
 
     return count;
@@ -56,6 +52,5 @@ pub fn main() {
         panic!("KURWA");
     }
 
-    // grid[start.0][start.1] = b'X';
     println!("{}", solve(&mut grid, (start.0 as Num, start.1 as Num)));
 }
