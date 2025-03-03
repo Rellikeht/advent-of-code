@@ -1,18 +1,17 @@
+use std::collections::HashSet;
 use std::fs::File;
 use std::io::BufRead;
 use std::{env, io};
 
-type itype = i64;
-type vert = usize;
+type Itype = i64;
+type Vert = usize;
 // type MMaze<'a> = Vec<&'a mut Vec<vert>>;
-type Maze = Vec<Vec<vert>>;
+type Maze = Vec<Vec<Vert>>;
 
 fn find_marker(grid: &Vec<&[u8]>, marker: u8) -> (usize, usize) {
     for (i, row) in grid.iter().enumerate() {
         match row.iter().position(|c| *c == marker) {
-            Some(j) => {
-                return (i, j);
-            }
+            Some(j) => return (i, j),
             None => {}
         }
     }
@@ -22,19 +21,23 @@ fn find_marker(grid: &Vec<&[u8]>, marker: u8) -> (usize, usize) {
 fn gen_path(
     grid: &Vec<&[u8]>,
     maze: &mut Maze,
-    start: (itype, itype),
-    end: (itype, itype),
-    dir: (itype, itype),
+    start: (Itype, Itype),
+    end: (Itype, Itype),
+    dir: (Itype, Itype),
 ) {
     // TODO
 }
 
 fn gen_maze(grid: &Vec<&[u8]>) -> Maze {
     let start = find_marker(grid, b'S');
-    let start = (start.0 as itype, start.1 as itype);
+    let start = (start.0 as Itype, start.1 as Itype);
     let end = find_marker(grid, b'E');
-    let end = (end.0 as itype, end.1 as itype);
+    let end = (end.0 as Itype, end.1 as Itype);
     let mut maze = vec![];
+    let mut verts = HashSet::<(Itype, Itype)>::with_capacity(
+        grid.len() * grid[0].len(),
+    );
+
     gen_path(grid, &mut maze, start, end, (1, 0));
     gen_path(grid, &mut maze, start, end, (-1, 0));
     gen_path(grid, &mut maze, start, end, (0, 1));
